@@ -1,6 +1,7 @@
 import type { Todo } from "../types/todo";
 import { USER_ID } from "../constant";
 import { toast } from "react-toastify";
+import { useEffect, useRef } from "react";
 
 type Props = {
   selectedTask?: Todo | null;
@@ -17,6 +18,12 @@ export default function TodoForm({
   setInputValue,
   inputValue,
 }: Props) {
+  const ref = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    ref?.current?.focus();
+  }, []);
+
   const addNewTask = () => {
     if (inputValue.trim()) {
       const newTask: Todo = {
@@ -46,6 +53,7 @@ export default function TodoForm({
   return (
     <div className="todo-form">
       <input
+        ref={ref}
         value={inputValue}
         placeholder="write title"
         onChange={(e) => setInputValue(e.currentTarget.value)}

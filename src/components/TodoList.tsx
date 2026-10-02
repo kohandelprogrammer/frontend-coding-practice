@@ -1,4 +1,5 @@
 import type { Todo } from "../types/todo";
+import EmptySate from "./EmptySate";
 import TodoItem from "./TodoItem";
 
 type Props = {
@@ -16,15 +17,19 @@ export default function TodoList({
 }: Props) {
   return (
     <div className="todo-list">
-      {tasks.map((task) => (
-        <TodoItem
-          key={task.id}
-          task={task}
-          editTask={editTask}
-          deleteTask={deleteTask}
-          onToggle={onToggle}
-        />
-      ))}
+      {tasks.length > 0 ? (
+        tasks.map((task) => (
+          <TodoItem
+            key={task.id}
+            task={task}
+            editTask={editTask}
+            deleteTask={deleteTask}
+            onToggle={onToggle}
+          />
+        ))
+      ) : (
+        <EmptySate />
+      )}
     </div>
   );
 }

@@ -1,26 +1,44 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import { getTasks } from "./services/todoService";
-import type { Todo } from "./types/todo";
+import type { FilterType, Todo } from "./types/todo";
 import TodoList from "./components/TodoList";
 import TodoForm from "./components/TodoForm";
+import TodoFilter from "./components/TodoFilter";
 
 function App() {
   const [tasks, setTasks] = useState<Todo[]>([]);
   const [selectedTask, setSelectedTask] = useState<Todo | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
   const [inputValue, setInputValue] = useState<string>("");
+  const [selectedFilter, setSelectedFilter] =
+    useState<FilterType["value"]>("all");
 
   useEffect(() => {
     const loadTasks = async () => {
-      const results = await getTasks();
-      setTasks(results.slice(0, 5));
+      setLoading(true);
+      setError("");
+
+      try {
+        const results = await getTasks();
+        setTasks(results.slice(0, 5));
+      } catch (error) {
+        if (error instanceof Error) {
+          setError(error.message);
+        } else {
+          setError("Something went wrong");
+        }
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadTasks();
   }, []);
 
   const addTasks = (task: Todo) => {
-    setTasks([...tasks, task]);
+    setTasks((prev) => [...prev, task]);
   };
 
   const handleUpdateTask = (_task: Todo) => {
@@ -57,21 +75,53 @@ function App() {
     );
   };
 
+  const onFilterChange = (filterValue: FilterType["value"]) => {
+    setSelectedFilter(filterValue);
+  };
+
+  const filteredTasks = tasks.filter((task: Todo) => {
+    if (selectedFilter === "active") {
+      return !task.completed;
+    }
+
+    if (selectedFilter === "completed") {
+      return task.completed;
+    }
+
+    return true;
+  });
+
+  const activeTasksCount = tasks.filter((task) => !task.completed).length;
+
+  if (loading) {
+    return <div>loading...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
   return (
     <div className="app">
-      <div>
+      <div className="app-header">
         <h2>{selectedTask ? "Edit task" : "Create a task"}</h2>
-        <TodoForm
-          inputValue={inputValue}
-          setInputValue={setInputValue}
-          selectedTask={selectedTask}
-          handleUpdateTask={handleUpdateTask}
-          addTasks={addTasks}
+        <h4>active task count : {activeTasksCount}</h4>
+        <TodoFilter
+          selectedFilter={selectedFilter}
+          onFilterChange={onFilterChange}
         />
       </div>
 
+      <TodoForm
+        inputValue={inputValue}
+        setInputValue={setInputValue}
+        selectedTask={selectedTask}
+        handleUpdateTask={handleUpdateTask}
+        addTasks={addTasks}
+      />
+
       <TodoList
-        tasks={tasks}
+        tasks={filteredTasks}
         onToggle={onToggle}
         deleteTask={deleteTask}
         editTask={editTask}

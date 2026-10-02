@@ -4,3 +4,8 @@ export type Todo = {
   title: string;
   userId: number;
 };
+
+export type FilterType = {
+  id: string;
+  value: string;
+};
